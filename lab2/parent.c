@@ -52,12 +52,19 @@ int main() {
     printf("Enter string:\n");
     char buffer[256];
 
-    while(1) {
-		fgets(buffer, 256, stdin);
-		write(pipe1[1], buffer, strlen(buffer));
-		read(pipe3[0], buffer, 256);
-		printf("%s", buffer);
-		fflush(stdout);
-	}
+    
+	fgets(buffer, 256, stdin);
+	write(pipe1[1], buffer, strlen(buffer));
+	read(pipe3[0], buffer, 256);
+
+	for(int i = 0; i < strlen(buffer); i++)
+        if(buffer[i] != '\n')
+            printf("%c", buffer[i]);
+        else
+            break;
+    printf("\n");
+    
+	fflush(stdout);
+	
     return 0;
 }
