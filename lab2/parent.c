@@ -24,22 +24,15 @@ int Spawning_Child_Processes (char *fname, int read, int write) {
 
 int main() {
 
-    int pipe1[2],
-        pipe2[2],
-        pipe3[2];
+    int pipe1[2], pipe2[2], pipe3[2];
 
-    if (pipe(pipe1) == -1) {
+    if (pipe(pipe1) == -1)
         printf("Pipe1 error!");
-    }
-    if (pipe(pipe2) == -1) {
+    if (pipe(pipe2) == -1) 
         printf("Pipe2 error!");
-    }
-    if (pipe(pipe3) == -1) {
+    if (pipe(pipe3) == -1) 
         printf("Pipe3 error!");
-    }
     
-
-
     if (Spawning_Child_Processes("./child1", pipe1[0], pipe2[1])) {
         perror("fork error");
 		return -1;
@@ -51,8 +44,6 @@ int main() {
 
     printf("Enter string:\n");
     char buffer[256];
-
-    
 	fgets(buffer, 256, stdin);
 	write(pipe1[1], buffer, strlen(buffer));
 	read(pipe3[0], buffer, 256);
@@ -63,8 +54,6 @@ int main() {
         else
             break;
     printf("\n");
-    
 	fflush(stdout);
-	
     return 0;
 }

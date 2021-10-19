@@ -17,11 +17,9 @@ void Double_space_to_Single (char* buffer){
 
 int main() {
     char buffer[256];
-    
-        fgets(buffer, 256, stdin);
-        Double_space_to_Single(buffer);
-        printf("%s", buffer);
-        fflush(stdout);
-    
+    fgets(buffer, 256, stdin);
+    Double_space_to_Single(buffer);
+    printf("%s", buffer);
+    fflush(stdout);
     return 0;
 }
