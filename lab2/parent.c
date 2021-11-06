@@ -25,13 +25,7 @@ int Spawning_Child_Processes (char *fname, int read, int write) {
 int main() {
     int pipe1[2], pipe2[2], pipe3[2];
 
-<<<<<<< Updated upstream
-    int pipe1[2], pipe2[2], pipe3[2];
-
-    if (pipe(pipe1) == -1)
-=======
     if (pipe(pipe1) == -1) 
->>>>>>> Stashed changes
         printf("Pipe1 error!");
     if (pipe(pipe2) == -1) 
         printf("Pipe2 error!");
@@ -48,20 +42,6 @@ int main() {
     }*/
 
     printf("Enter string:\n");
-<<<<<<< Updated upstream
-    char buffer[256];
-	fgets(buffer, 256, stdin);
-	write(pipe1[1], buffer, strlen(buffer));
-	read(pipe3[0], buffer, 256);
-
-	for(int i = 0; i < strlen(buffer); i++)
-        if(buffer[i] != '\n')
-            printf("%c", buffer[i]);
-        else
-            break;
-    printf("\n");
-	fflush(stdout);
-=======
     char c;
     while ((c = getc(stdin)) != EOF) {
         write(pipe1[1], &c, 1);
@@ -69,6 +49,5 @@ int main() {
         printf("%c", c);
         fflush(stdout);
     }
->>>>>>> Stashed changes
     return 0;
 }
