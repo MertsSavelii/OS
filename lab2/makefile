@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -pedantic -Wall -g
+CFLAGS = -std=c11 -pedantic -Wall -g
 
 build:
 	$(CC) $(CFLAGS) parent.c -o parent && $(CC) $(CFLAGS) child1.c -o child1 && $(CC) $(CFLAGS) child2.c -o child2
