@@ -3,13 +3,14 @@
 #include <string.h>
 
 int main() {
+    char c;
     while ((c = getc(stdin)) != EOF) {
-        if(c == ' ')
-            while ((s = getc(stdin)) == ' ' && (s != EOF || s != '\n'));
         printf("%c", c);
-        if(s >= 'a' && s <= 'A')
-            printf("%c", s);
-        fflush(stdout);
+        if (c == ' ') {
+            while ((c = getc(stdin)) == ' ')
+                printf("\0");
+            printf("%c", c);
+        }
     }
     return 0;
 }

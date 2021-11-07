@@ -32,21 +32,22 @@ int main() {
     if (pipe(pipe3) == -1) 
         printf("Pipe3 error!");
     
-    if (Spawning_Child_Processes("./child1", pipe1[0], pipe2[1])) {
-        perror("fork error");
-		return -1;
-    }
-    /*if (Spawning_Child_Processes("./child2", pipe2[0], pipe3[1])) {
+    /*if (Spawning_Child_Processes("./child1", pipe1[0], pipe2[1])) {
         perror("fork error");
 		return -1;
     }*/
+    if (Spawning_Child_Processes("./child2", pipe2[0], pipe3[1])) {
+        perror("fork error");
+		return -1;
+    }
 
     printf("Enter string:\n");
-    char c;
-    while ((c = getc(stdin)) != EOF) {
-        write(pipe1[1], &c, 1);
-        read(pipe2[0], &c, 1);
-        printf("%c", c);
+    char in, out;
+    while ((in = getc(stdin)) != EOF) {
+        write(pipe2[1], &in, 1);
+        read(pipe3[0], &out, 1);
+        if (out != "\0")
+            printf("%c", out);
         fflush(stdout);
     }
     return 0;
