@@ -1,6 +1,5 @@
 #include <unistd.h>
 #include <stdio.h>
-#include <string.h>
 
 char toUpper(char c) {
     if (c >= 'a' && c <= 'z')
@@ -10,7 +9,7 @@ char toUpper(char c) {
 
 int main() {
     char c;
-    while ((c = fgetc(stdin)) != EOF) {
+    while ((c = getchar()) != EOF) {
         printf("%c", toUpper(c));
         fflush(stdout);
     }

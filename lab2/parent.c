@@ -1,11 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
-//#include <fcntl.h>
-//#include <string.h>
 
 int Spawning_Child_Processes (char *fname, int read, int write) {
-    switch (fork())
-    {
+    switch (fork()) {
         case -1:
             return -1;
         case 0: //child
@@ -36,16 +33,16 @@ int main() {
         perror("fork error");
 		return -1;
     }
-    /*if (Spawning_Child_Processes("./child2", pipe2[0], pipe3[1])) {
+    if (Spawning_Child_Processes("./child2", pipe2[0], pipe3[1])) {
         perror("fork error");
 		return -1;
-    }*/
+    }
 
     printf("Enter string:\n");
     char c;
-    while ((c = getc(stdin)) != EOF) {
+    while ((c = getchar()) != EOF) {
         write(pipe1[1], &c, 1);
-        read(pipe2[0], &c, 1);
+        read(pipe3[0], &c, 1);
         printf("%c", c);
         fflush(stdout);
     }
