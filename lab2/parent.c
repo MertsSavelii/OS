@@ -8,9 +8,12 @@ int Spawning_Child_Processes (char *fname, int read, int write) {
         case 0: //child
         {
             char *args[] = {NULL};
-            dup2(read, 0);
-            dup2(write, 1);
-            execv(fname, args);
+            if(dup2(read, 0) == -1)
+                printf("dup2 error!");
+            if(dup2(write, 1) == -1)
+                printf("dup2 error!");
+            if(execv(fname, args) == -1)
+                printf("execv error!");
             return 0;
         } 
         default:
