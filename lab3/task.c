@@ -1,78 +1,61 @@
 #include <stdio.h>
-#include <pthread.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <limits.h>
+#include <unistd.h>
+#include <time.h>
+
 unsigned current_number, number;
 pthread_t* threads;
-pthread_mutex_t mutex;
 
 typedef struct
 {
-    unsigned i, j;
+    unsigned left, right;
     int *array;
 } thread_data;
 
 void* quicksort (void* arguments)
 {
+    //sleep(3);
     thread_data* data = (thread_data*) arguments;
-    unsigned i = data->i, j = data->j;
-    int x = data->array[(i + j) / 2];
-    while (i <= j)
+    unsigned left = data->left, right = data->right;
+    int x = data->array[(left + right) / 2];
+    while (left <= right)
     {
-        while (data->array[i] < x)
+        while (data->array[left] < x)
+            left++;
+        while (data->array[right] > x)
+            right--;
+        if (left <= right)
         {
-            i++;
-        }
-        while (data->array[j] > x)
-        {
-            j--;
-        }
-        if (i <= j)
-        {
-            if (data->array[i] > data->array[j])
+            if (data->array[left] > data->array[right])
             {
-                data->array[i] += data->array[j];
-                data->array[j] = data->array[i] - data->array[j];
-                data->array[i] -= data->array[j];
+                data->array[left] += data->array[right];
+                data->array[right] = data->array[left] - data->array[right];
+                data->array[left] -= data->array[right];
             }
-            if (i == INT_MAX)
-            {
+            if (left == INT_MAX)
                 break;
-            }
-            i++;
-            if (!j)
-            {
+            left++;
+            if (!right)
                 break;
-            }
-            j--;
+            right--;
         }
     }
-    if ((i < data->j) && (data->i < j))
+    if ((left < data->right) && (data->left < right))
     {
-        thread_data a = {i, data->j, data->array}, b = {data->i, j, data->array};
+        thread_data a = {left, data->right, data->array}, b = {data->left, right, data->array};
         if (current_number)
         {
-	    int index;
-            if (index = (pthread_mutex_lock(&mutex)) != 0)
-	    {
-                printf("There is some problems with locking mutex\n");
-		printf("Code of error is %d\n", index);
-		exit(1);
-	    }
+	    	int index;
             current_number--;
-            if (index = (pthread_mutex_unlock(&mutex)) != 0)
-	    {
-		printf("There is some priblems with unlocking mutex\n");
-		printf("Code of error is %d\n", index);
-		exit(1);
-            }
-            int local_number = current_number;
-            if ((data->j - i) >= (j - data->i))
+        	int local_number = current_number;
+        	if ((data->right - left) >= (right - data->left))
             {
                 if (index = (pthread_create(&threads[number - current_number - 1], NULL, quicksort, &b)) != 0)
                 {
-                    printf("Can't create the thread\n");
-                    printf("Code of error is %d\n", index);
+                    printf("Ошибка при создании процесса\n");
+                    printf("Код ошибки %d\n", index);
                     exit(1);
                 }
                 quicksort(&a);
@@ -81,16 +64,16 @@ void* quicksort (void* arguments)
             {
                 if (index = (pthread_create(&threads[number - current_number - 1], NULL, quicksort, &a)) != 0)
                 {
-                    printf("Can't create the thread\n");
-                    printf("Code of error is %d\n", index);
+                    printf("Ошибка при создании процесса\n");
+                    printf("Код ошибки %d\n", index);
                     exit(1);
                 }
                 quicksort(&b);
             }
             if ((index = pthread_join(threads[number - local_number - 1], NULL)) != 0)
             {
-                printf("Can't join the thread\n");
-                printf("Code of error is %d\n", index);
+                printf("Ошибка при создании процесса\n");
+                printf("Код ошибки %d\n", index);
                 exit(1);
             }
         }
@@ -102,14 +85,14 @@ void* quicksort (void* arguments)
     }
     else
     {
-        if (i < data->j)
+        if (left < data->right)
         {
-            thread_data a = {i, data->j, data->array};
+            thread_data a = {left, data->right, data->array};
             quicksort(&a);
         }
-        else if (data->i < j)
+        else if (data->left < right)
         {
-            thread_data a = {data->i, j, data->array};
+            thread_data a = {data->left, right, data->array};
             quicksort(&a);
         }
     }
@@ -118,33 +101,35 @@ void* quicksort (void* arguments)
 
 int main(int argc, char* argv[])
 {
-    if ((argc != 3) || (atoi(argv[1]) < 0) || (atoi(argv[2]) < 1))
+  if ((argc != 3) || (atoi(argv[1]) < 0) || (atoi(argv[2]) < 1))
     {
-        printf("Syntax should be like this: ./[executable_file_name] [(non-negative) number_of_threads] [(positive) size_of_array]\n");
+        printf("Аргументы вызова программы: (не отрицательное) числопотоков (позитивное) размер массива\n");
         exit(1);
     }
     number = strtol(argv[1], NULL, 10);
     unsigned size = strtol(argv[2], NULL, 10);
     if (number > size)
     {
-        printf("The size of array is less than number of threads, but it can't be with parallel quick sort, so number of threads equals size of array now\n");
+        printf("Количество потоков больше размера массива. Количество потоков приравнено к размеру массива\n");
         number = size;
     }
     current_number = number;
-    printf("Input elements of the array\n");
+    pid_t pid = getpid();
+    printf("PID: %d\n", pid);
+    printf("Введите элементы массива размером %d \n", size);
     int *array = (int*) malloc(size * sizeof(int));
-    bool sorted = true;
+    int sorted = 1;
     for (int i = 0; i < size; i++)
     {
         scanf("%i", &array[i]);
         if ((i) && (sorted) && (array[i] < array[i - 1]))
         {
-            sorted = false;
+            sorted = 0;
         }
     }
     if (sorted)
     {
-        printf("Array is sorted yet, this is the end of the program\n");
+      printf("Массив отсортирован\n");
         for (int i = 0; i < size; i++)
         {
             printf("%i ", array[i]);
@@ -153,30 +138,36 @@ int main(int argc, char* argv[])
 	    free(array);
         return 0;
     }
-    int index;
+    /*int index;
     if (index = (pthread_mutex_init(&mutex, NULL)) != 0)
     {
         printf("There is some problems with initializing mutex\n");
 	    printf("%i\n", index);
 	    free(array);
 	    exit(1);
-    }
+    }*/
     threads = (pthread_t*)malloc(number * sizeof(pthread_t));
     thread_data a = {0, size - 1, array};
+    struct timespec mt1, mt2;
+    clock_gettime (CLOCK_REALTIME, &mt1);
     quicksort(&a);
-    printf("Sorted array:\n");
+    clock_gettime (CLOCK_REALTIME, &mt2);
+
+    printf("Массив отсортирован:\n");
     for (int i = 0; i < size; i++)
     {
         printf("%i ", array[i]);
     }
     printf("\n");
+    long int tt=1000000000*(mt2.tv_sec - mt1.tv_sec)+(mt2.tv_nsec - mt1.tv_nsec);
+	printf ("Затрачено время: %ld нс\n",tt);
     free(array);
     free(threads);
-    if (index = (pthread_mutex_destroy(&mutex)) != 0)
+    /*if (index = (pthread_mutex_destroy(&mutex)) != 0)
     {       
         printf("There is some problems with destroying mutex\n");
         printf("%i\n", index);
         exit(1);
-    }
+    }*/
     return 0;
 }
