@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
     int sorted = 1;
     for (int i = 0; i < size; i++)
     {
-        scanf("%i", &array[i]);
+        array[i] = rand();
         if ((i) && (sorted) && (array[i] < array[i - 1]))
         {
             sorted = 0;
@@ -130,10 +130,10 @@ int main(int argc, char* argv[])
     if (sorted)
     {
       printf("Массив отсортирован\n");
-        for (int i = 0; i < size; i++)
-        {
-            printf("%i ", array[i]);
-        }
+        // for (int i = 0; i < size; i++)
+        // {
+        //     printf("%i ", array[i]);
+        // }
         printf("\n");
 	    free(array);
         return 0;
@@ -154,10 +154,10 @@ int main(int argc, char* argv[])
     clock_gettime (CLOCK_REALTIME, &mt2);
 
     printf("Массив отсортирован:\n");
-    for (int i = 0; i < size; i++)
-    {
-        printf("%i ", array[i]);
-    }
+    // for (int i = 0; i < size; i++)
+    // {
+    //     printf("%i ", array[i]);
+    // }
     printf("\n");
     long int tt=1000000000*(mt2.tv_sec - mt1.tv_sec)+(mt2.tv_nsec - mt1.tv_nsec);
 	printf ("Затрачено время: %ld нс\n",tt);

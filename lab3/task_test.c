@@ -56,17 +56,6 @@ void* native_quick_sort(void* arguments)
 			int id_thread = number - current_number - 1;
 			if ((pivot - left) >= (right - pivot))
 			{
-				int status = pthread_create(&threads[id_thread], NULL, native_quick_sort, &b);
-				if (status != SUCCESS)
-				{
-					printf("Ошибка при создании процесса\n");
-                    printf("Код ошибки %d\n", status);
-                    exit(ERROR_CREATE_THREAD);
-				}
-				native_quick_sort(&a);
-			}
-			else
-			{
 				int status = pthread_create(&threads[id_thread], NULL, native_quick_sort, &a);
 				if (status != SUCCESS)
 				{
@@ -75,6 +64,17 @@ void* native_quick_sort(void* arguments)
                     exit(ERROR_CREATE_THREAD);
 				}
 				native_quick_sort(&b);
+			}
+			else
+			{
+				int status = pthread_create(&threads[id_thread], NULL, native_quick_sort, &b);
+				if (status != SUCCESS)
+				{
+					printf("Ошибка при создании процесса\n");
+                    printf("Код ошибки %d\n", status);
+                    exit(ERROR_CREATE_THREAD);
+				}
+				native_quick_sort(&a);
 			}
 			int status_arrt = pthread_join(threads[id_thread], NULL);
 			if (status_arrt != SUCCESS)
@@ -119,24 +119,9 @@ int main(int argc, char* argv[])
     printf("PID: %d\n", pid);
 
     current_number = number;
-    printf("Введите элементы массива размером %d \n", size);
     int *array = (int*) malloc(size * sizeof(int));
-    int sorted = 1;
     for (int i = 0; i < size; i++)
-    {
-        scanf("%i", &array[i]);
-        if ((i) && (sorted) && (array[i] < array[i - 1]))
-            sorted = 0;
-    }
-    if (sorted)
-    {
-      printf("Массив отсортирован\n");
-        for (int i = 0; i < size; i++)
-            printf("%i ", array[i]);
-        printf("\n");
-	    free(array);
-        return 0;
-    }
+        array[i] = rand();
 
 	struct timespec mt1, mt2;
 
@@ -147,9 +132,6 @@ int main(int argc, char* argv[])
 	clock_gettime (CLOCK_REALTIME, &mt2);
 
     printf("Массив отсортирован:\n");
-    for (int i = 0; i < size; i++)
-        printf("%i ", array[i]);
-    printf("\n");
 
 	long int tt=1000000000*(mt2.tv_sec - mt1.tv_sec)+(mt2.tv_nsec - mt1.tv_nsec);
 	printf ("Затрачено время: %ld нс\n",tt);
