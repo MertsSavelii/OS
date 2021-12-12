@@ -1,17 +1,13 @@
 #include <stdio.h>
-#include <unistd.h>
+#include "pipe_map.h"
 
-int Spawning_Child_Processes (char *fname, int read, int write) {
+int Spawning_Child_Processes (char *fname) {
     switch (fork()) {
         case -1:
             return -1;
-        case 0: //child
+        case 0:
         {
             char *args[] = {NULL};
-            if(dup2(read, 0) == -1)
-                printf("dup2 error!");
-            if(dup2(write, 1) == -1)
-                printf("dup2 error!");
             if(execv(fname, args) == -1)
                 printf("execv error!");
             return 0;
@@ -22,32 +18,34 @@ int Spawning_Child_Processes (char *fname, int read, int write) {
     return 0;
 }
 
-int main() {
-    int pipe1[2], pipe2[2], pipe3[2];
+int main()
+{
+	pipe_map parent_child1;
+	pipe_map child1_child2;
+	pipe_map child2_parent;
 
-    if (pipe(pipe1) == -1) 
-        printf("Pipe1 error!");
-    if (pipe(pipe2) == -1) 
-        printf("Pipe2 error!");
-    if (pipe(pipe3) == -1) 
-        printf("Pipe3 error!");
-    
-    if (Spawning_Child_Processes("./child1", pipe1[0], pipe2[1])) {
-        perror("fork error");
-		return -1;
-    }
-    if (Spawning_Child_Processes("./child2", pipe2[0], pipe3[1])) {
-        perror("fork error");
-		return -1;
-    }
+	if (pipe_map_create("parent_child1", &parent_child1) == -1 ||
+		pipe_map_create("child1_child2", &child1_child2) == -1 ||
+		pipe_map_create("child2_parent", &child2_parent) == -1 )
+	{
+		printf("error: cannot create shared memory\n");
+		return 1;
+	}
 
-    printf("Enter string:\n");
-    char c;
-    while ((c = getchar()) != EOF) {
-        write(pipe1[1], &c, 1);
-        read(pipe3[0], &c, 1);
-        printf("%c", c);
-        fflush(stdout);
-    }
-    return 0;
+	if (Spawning_Child_Processes("./child1") == -1 |
+		Spawning_Child_Processes("./child2") == -1 )
+	{
+		perror("fork error");
+		return -1;
+	}
+
+	printf("Enter string:\n");
+	char c;
+	while ((c = getchar()) != EOF) {
+		pipe_map_write(&c, parent_child1.buffer, sizeof(char));
+		pipe_map_read(child2_parent.buffer, &c, sizeof(char));
+		printf("%c ", c);
+		fflush(stdout);
+	}
+	return 0;
 }

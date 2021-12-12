@@ -1,8 +1,10 @@
 CC = gcc
-CFLAGS = -std=c11 -pedantic -Wall -g
+CFLAGS = -std=c99 -pedantic -Wall -g -pthread
+SRC_PARENT = parent.c
+PROG_PARENT = parent
 
 build:
-	$(CC) $(CFLAGS) parent.c -o parent && $(CC) $(CFLAGS) child1.c -o child1 && $(CC) $(CFLAGS) child2.c -o child2
+	$(CC) $(CFLAGS) $(SRC_PARENT) -o $(PROG_PARENT) && $(CC) $(CFLAGS) child1.c -o child1 && $(CC) $(CFLAGS) child2.c -o child2
 
 clean:
-	rm parent child1 child2
+	rm $(PROG_PARENT)

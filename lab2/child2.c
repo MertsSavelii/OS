@@ -1,5 +1,5 @@
 #include <unistd.h>
-#include "stdio.h"
+#include <stdio.h>
 
 void PrintChar(char x) {
     printf("%c", x);
@@ -9,7 +9,7 @@ void PrintChar(char x) {
 int main() {
     char c;
     while ((c = getchar()) != EOF) {
-        PrintChar(c);;
+        PrintChar(c);
         if (c == ' ') {
             while ((c = getchar()) == ' ')
                 PrintChar(0);
