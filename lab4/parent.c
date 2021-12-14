@@ -32,7 +32,7 @@ int main()
 		return 1;
 	}
 
-	if (Spawning_Child_Processes("./child1") == -1 |
+	if (Spawning_Child_Processes("./child1") == -1 ||
 		Spawning_Child_Processes("./child2") == -1 )
 	{
 		perror("fork error");
