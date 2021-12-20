@@ -1,7 +1,7 @@
-extern "C" int PrimeCount_resheto(int A, int B);
-extern "C" int GCF_native(int A, int B);
+extern "C" int PrimeCount(int A, int B);
+extern "C" int GCF(int A, int B);
 
-int PrimeCount_resheto(int A, int B) {
+int PrimeCount(int A, int B) {
     int count = 0;
     int n = B + 1;
     int *arr = new int[n];
@@ -16,7 +16,7 @@ int PrimeCount_resheto(int A, int B) {
     return count;
 }
 
-int GCF_native(int A, int B) {
+int GCF(int A, int B) {
     A = A < B ? A : B;
     B = A > B ? A : B;
     int c = A;

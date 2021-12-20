@@ -1,7 +1,7 @@
-extern "C" int PrimeCount_native(int A, int B);
-extern "C" int GCF_evclid(int A, int B);
+extern "C" int PrimeCount(int A, int B);
+extern "C" int GCF(int A, int B);
 
-int PrimeCount_native(int A, int B) {
+int PrimeCount(int A, int B) {
     int count = 0;
     for (int i = A; i <= B; i++){
         int j;
@@ -12,7 +12,7 @@ int PrimeCount_native(int A, int B) {
     return count;
 }
 
-int GCF_evclid(int A, int B) {
+int GCF(int A, int B) {
     while (A!=0 && B!=0)
         if (A > B)
             A = A % B;

@@ -1,37 +1,29 @@
 #include <iostream>
-extern "C" float E (int x);
-extern "C" float Square (float A, float B);
+extern "C" int PrimeCount (int A, int B);
+extern "C" int GCF (int A, int B);
 
 int main () {
     int command;
     while (printf("Please enter your command: ") && (scanf("%d", &command)) != EOF) {
         switch (command) {
             case 1: {
-                int x;
-                std:: cin >> x;
-                float exp = E(x);
-                if (exp == -1) {
-                    std:: cout << "Please enter a positive accuracy!" << std:: endl;
-                }
-                else {
-                    std:: cout << "An approximate exponent value is: " << exp << std:: endl;
-                }
+                int A, B;
+                std::cout << "enter A and B\n";
+                std::cin >> A >> B;
+                int prime_count = PrimeCount (A, B);
+                printf("PrimeCount = %d\n", prime_count);
                 break;
             }
             case 2: {
-                float A, B, square;
-                std:: cin >> A >> B;
-                square = Square(A, B);
-                if (square == -1) {
-                    std:: cout << "Please enter positive variables!" << std:: endl;
-                }
-                else {
-                    std:: cout << "The square of your figure is: " << square << std:: endl;
-                }
+                int A, B;
+                std::cout << "enter A and B\n";
+                std::cin >> A >> B;
+                int gcf = GCF (A, B);
+                printf("GCF = %d\n", gcf);
                 break;
             }
             default:
-                std:: cout << "You must enter 1 or 2!" << std:: endl;
+                std:: cout << "You must enter 1 or 2!\n" << std:: endl;
                 break;
         }
     }
