@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "pipe_map.h"
+#include "pipe_map.hpp"
 
 void PrintChar(char c, pipe_map child2_parent) {
     pipe_map_write(&c, child2_parent.buffer, sizeof(char));
