@@ -40,3 +40,8 @@ void pipe_map_write (const void *src, void* dest, size_t n) {
 void pipe_map_read (const void *src, void* dest, size_t n) {
     memcpy(dest, src, n);
 }
+
+void pipe_destroy (pipe_map* pip) {
+	close(pip->Fd);
+	pip->Fd = -1;
+}

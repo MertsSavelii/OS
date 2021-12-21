@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "pipe_map.hpp"
+#include "pipe_map.h"
 
 int Spawning_Child_Processes (char *fname) {
     switch (fork()) {
@@ -24,9 +24,9 @@ int main()
 	pipe_map child1_child2;
 	pipe_map child2_parent;
 
-	if (pipe_map_create("parent_child1", &parent_child1) == -1 ||
-		pipe_map_create("child1_child2", &child1_child2) == -1 ||
-		pipe_map_create("child2_parent", &child2_parent) == -1 )
+	if (pipe_map_create("parent_child1.txt", &parent_child1) == -1 ||
+		pipe_map_create("child1_child2.txt", &child1_child2) == -1 ||
+		pipe_map_create("child2_parent.txt", &child2_parent) == -1 )
 	{
 		printf("error: cannot create shared memory\n");
 		return 1;
@@ -47,5 +47,12 @@ int main()
 		printf("%c ", c);
 		fflush(stdout);
 	}
+
+	pipe_destroy(&parent_child1);
+	pipe_destroy(&child1_child2);
+	pipe_destroy(&child2_parent);
+	//remove("parent_child1.txt");
+	remove("child1_child2.txt");
+	remove("child2_parent.txt");
 	return 0;
 }
