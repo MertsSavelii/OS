@@ -12,7 +12,7 @@ typedef struct pipe_map
 } pipe_map;
 
 int pipe_map_create (char* name, pipe_map* pip) {
-	pip->Fd = shm_open(name, O_CREAT | O_RDWR, S_IWUSR | S_IRUSR);
+	pip->Fd = open(name, O_CREAT | O_RDWR, S_IWUSR | S_IRUSR);
 	if (pip->Fd == -1)
 		return -1;
 	if (ftruncate(pip->Fd, sizeof(char)) == -1)
@@ -24,7 +24,7 @@ int pipe_map_create (char* name, pipe_map* pip) {
 }
 
 int pipe_map_connect (char* name, pipe_map* pip) {
-	pip->Fd = shm_open(name, O_CREAT | O_RDWR, S_IWUSR | S_IRUSR);
+	pip->Fd = open(name, O_CREAT | O_RDWR, S_IWUSR | S_IRUSR);
 	if (pip->Fd == -1)
 		return -1;
 	pip->buffer = mmap(NULL, sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED, pip->Fd, 0);

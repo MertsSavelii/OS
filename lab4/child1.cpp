@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "pipe_map.h"
+#include "pipe_map.hpp"
 
 char toUpper(char c) {
     if (c >= 'a' && c <= 'z')

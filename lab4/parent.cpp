@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "pipe_map.h"
+#include "pipe_map.hpp"
 
 int Spawning_Child_Processes (char *fname) {
     switch (fork()) {
