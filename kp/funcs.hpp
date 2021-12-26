@@ -102,7 +102,7 @@ std::string extract_message(std::string message)
 }
 
 //получить получателя сообщения
-std::string extract_addressee(std::string message)
+std::string extract_command(std::string message)
 {
     std::string text;
     int i = 0;
