@@ -42,7 +42,7 @@ int main()
 	char buffer[256];
 	while(1)
 	{
-		fgets(buffer, 256, stdin);
+		fgets(buffer, 255, stdin);
 		int slen = strlen(buffer);
 		mltshr_write(&parent_child1, buffer, slen+1);
 		char *input = mltshr_read(&child2_parent, &slen);
