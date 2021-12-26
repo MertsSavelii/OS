@@ -29,6 +29,7 @@ int main(int argc, char** argv) {
         my_zmq::receive_msg(token, node_parent_socket);
         auto* reply = new node_token_t({ fail, node_id, node_id });
  
+
         if (token.action == bind and token.parent_id == node_id) {
             my_zmq::init_pair_socket(node_context, node_socket);
             rc = zmq_bind(node_socket, ("tcp://*:" + std::to_string(PORT_BASE + token.id)).c_str());
@@ -41,6 +42,8 @@ int main(int argc, char** argv) {
                 reply->action = success;
             }
         }
+
+
         else if (token.action == create) {
             if (token.parent_id == node_id) {
                 if (has_child) {
@@ -94,6 +97,8 @@ int main(int argc, char** argv) {
                 }
             }
         }
+
+
         else if (token.action == ping) {
             if (token.id == node_id) {
                 reply->action = success;
@@ -107,6 +112,8 @@ int main(int argc, char** argv) {
                 }
             }
         }
+
+
         else if (token.action == destroy) {
             if (has_child) {
                 if (token.id == child_id) {
@@ -163,6 +170,8 @@ int main(int argc, char** argv) {
                 awake = false;
             }
         }
+
+
         else if (token.action == exec_check) {
             if (token.id == node_id) {
                 char c = token.parent_id;
@@ -190,6 +199,8 @@ int main(int argc, char** argv) {
                 }
             }
         }
+
+        
         else if (token.action == exec_add) {
             if (token.id == node_id) {
                 char c = token.parent_id;

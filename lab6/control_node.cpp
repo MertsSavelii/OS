@@ -19,7 +19,7 @@ void pinger(int wait) {
             auto* token = new node_token_t({ ping, value, value });
             node_token_t reply({ fail, value, value });
             if (ind != -1 and my_zmq::send_receive_wait(token, reply, children[ind].second) and reply.action == success) {
-                //std::cout << value << std::endl;
+                std::cout << "OK" << std::endl;
                 continue;
             }
             else {
@@ -108,9 +108,9 @@ int main() {
                 else {
                     auto* token = new node_token_t({ ping, id, id });
                     node_token_t reply({ fail, id, id });
-                    if (my_zmq::send_receive_wait(token, reply, new_socket) and reply.action == success) {
-                        children.emplace_back(std::make_pair(new_context, new_socket));
-                        control_node.insert(id);
+                    if (my_zmq::send_receive_wait(token, reply, new_socket) and reply.action == success) {//проверка создания нового сокета(выч ноды)
+                        children.emplace_back(std::make_pair(new_context, new_socket));//добавляем в вектор новый сокет ребёнка тип н дентей у контрол ноды
+                        control_node.insert(id);//вставляем ид в топологию
                     }
                     else {
                         rc = zmq_close(new_socket);
@@ -142,9 +142,13 @@ int main() {
                 }
             }
         }
+
+
         else if (s == "remove") {
             delete_control_node(id);
         }
+
+        
         else if (s == "heartbeat") {
             if (ping_storage.empty()) {
                 std::cout << "Error: there are no calculation nodes at all" << std::endl;
@@ -152,6 +156,8 @@ int main() {
             }
             new_thread = std::thread(pinger, id);
         }
+
+        
         else if (s == "exec") {
             ok = true;
             std::string key;

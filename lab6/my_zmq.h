@@ -98,8 +98,8 @@ namespace my_zmq {
 		assert(rc == sizeof(T));
 		return true;
 	}
-
 	/* Returns true if T was successfully queued on the socket */
+	
 	template<typename T>
 	bool send_msg_wait(T *token, void *socket) {
 		int rc;

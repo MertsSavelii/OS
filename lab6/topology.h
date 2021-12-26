@@ -57,7 +57,7 @@ class topology_t {
   size_t size() {
 	return container_size;
   }
-  int find(const T &elem) {// in which list exists (or not) element with id $id
+  int find(const T &elem) {// в каком списке существует (или нет) элемент с идентификатором $id
 	int ind = 0;
 	for (auto &external : container) {
 	  for (auto &internal : external) {
