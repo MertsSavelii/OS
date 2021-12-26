@@ -1,16 +1,15 @@
 #include <string>
 
 //отправить сообщение серверу в удобной форме - логин$получатель$сообщение
-// command: login, create, connect
-void send_message_to_server(int fd, std::string curlogin, std::string command, std::string arg)
+void send_message_to_server(int fd, std::string curlogin, std::string user, std::string message)
 {
-    std::string text = curlogin + "$" + command + "$" + arg;
+    std::string text = curlogin + "$" + user + "$" + message;
     int k = text.size();
     write(fd, &k, sizeof(k));
     char messagec[k];
     for (int i = 0; i < k; ++i)
     {
-        messagec[i] = text[i];//c_str
+        messagec[i] = text[i];
     }
     write(fd, messagec, k);
 }

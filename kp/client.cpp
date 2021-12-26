@@ -20,8 +20,11 @@ int main()
     }
     std::cout << "Insert your login: ";
     std::string login;
-    
+    std::cin >> login;
     send_message_to_server(fd_send, login, "login", "");
+    int fd_pers = open(login.c_str(), O_RDWR);
+    std::string message = recieve_message_client(fd_pers);
+    std::cout << message << "test5";
 
     // while (1)
     // {
