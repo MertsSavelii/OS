@@ -9,69 +9,79 @@
 #include "funcs.hpp"
 #include <thread>
 
-#define SEND_TO_SERVER send_message_to_server(main_output_fd, login, command, message)
+#define SEND_TO_SERVER(FD) send_message_to_server(FD, login, command, message)
 
 //функция приёма сообщений (для потока)
 void func(int fd_respond, std::string login)
 {
     while (1)
     {
-        std::string reply = recieve_message_client(fd_respond);
-        std::cout << reply << "\n";
+        std::string respond = recieve_message_client(fd_respond);
+        std::cout << "\n" << respond << "\n";
         std::cout.flush();
-        std::cout << login << ">";
+        if (respond == "SERVER CLOSED")
+            exit(0);
+        std::cout << login << "> ";
         std::cout.flush();
     }
 }
-int main()
-{
-    //подключение к входному FIFO сервера
-    int main_output_fd = open("main_input", O_RDWR);
-    if (main_output_fd == -1)
-    {
-        std::cout << "ERROR: MAIN FIFO WAS NOT OPENED\n";
-        exit(1);
-    }
 
-    //подготовка - инструкции, ввод логина
+inline void write_intro() {
     std::cout << "Добро пожаловать в игру Быки и Коровы.\nЧтобы создать аккаунт запустите ./server и введите там свой логи\n";
     std::cout <<  "Затем перезапустите клиент и впишите совй логин\n";
     std::cout << "Введите свой логин: ";
-    std::string login;
+    std::cout.flush();
+}
 
-    // логинимся и открываем пайп для получения ответов от серва
-    std::cin >> login;
-    send_message_to_server(main_output_fd, login, "login", "");
-    int fd_respond = open(login.c_str(), O_RDWR);
-    if (fd_respond == -1)
-        std::cout << "RESPOND FIFO WAS NOT OPENED";
-
-    // //подключение к персональному именованному пайпу
-    // int fd_recv = -1;
-    // while (fd_recv == -1)
-    // {
-    //     std::cin >> login;
-    //     fd_recv = open(login.c_str(), O_RDWR);
-    //     if (fd_recv == -1)
-    //     {
-    //         std::cout << "Wrong login!\nInsert your login: ";
-    //     }
-    // };
-
-    //вход успешен, запуск потока принятия сообщений от сервера
-    
+inline void write_menu(std::string login){
     std::cout << "Соединение установлено, можете отдавать команды\n";
     std::cout << "Список команд:\n";
     std::cout << "1) create @название игрового стола@ @игровое слово@ @максимальное количество игроков@\n";
     std::cout << "2) connect @название игры@\n";
     std::cout << "3) leave\n";
-    std::cout << "4) quit\n";
+    if (login != "admin")std::cout << "4) quit\n";
     if (login == "admin") std::cout << "5) shut_down - выключение сервера\n";
+    std::cout.flush();
+}
 
-    std::thread thr_recieve(func, fd_respond, login);
+inline int server_main_input_fd(){
+
+    int fd = open("main_input", O_RDWR);
+    if (fd == -1)
+    {
+        std::cout << "ERROR: MAIN FIFO WAS NOT OPENED\n";
+        exit(1);
+    }
+    return fd;
+}
+
+
+
+int main()
+{
+    int client_main_out_fd = server_main_input_fd();
+
+    write_intro();
+    std::string login;
+    std::cin >> login;
+    send_message_to_server(client_main_out_fd, login, "login", "");
+    
+    sleep(1);
+    int fd_respond = open(login.c_str(), O_RDWR);
+    if (fd_respond == -1)
+    {
+        std::cout << "RESPOND FIFO WAS NOT OPENED";
+        exit(1);
+    }
+
+    
+    write_menu(login);
+    std::thread thr_respond(func, fd_respond, login);
 
     std::string command, message;
-    //запуск цикла отправки сообщений на сервер
+    std::string game_name_table, game_word;
+    int max_players, game_fd;
+
     while (1)
     {
         std::cout << login << "> ";
@@ -79,49 +89,58 @@ int main()
         
         if (command == "create")
         {
-            std::string name_game_table;
-            std::string game_word;
-            int max_players;
-            std::cin >> name_game_table >> game_word >> max_players;
-            message = name_game_table + "$" + game_word + "$" + std::to_string(max_players);
-            SEND_TO_SERVER;
+            std::cin >> game_name_table >> game_word >> max_players;
+            message = game_name_table + "$" + game_word + "$" + std::to_string(max_players);
+            SEND_TO_SERVER(client_main_out_fd);
         }
         else if (command == "connect")
         {
             std::string game_name;
             std::cin >> game_name;
-            message = game_name;
-            SEND_TO_SERVER;
+            game_fd = open(game_name.c_str(), O_RDWR);
+            if (game_fd == -1)
+            {
+                std::cout << "ERROR: GAME NOT FOUND\n";
+                std::cout.flush();
+            }
+            else
+            {
+                message = "";
+                SEND_TO_SERVER(game_fd);
+                while (1)
+                {
+                    std::cout << game_name << "> ";
+                    std::cin >> command;
+
+                    if (command == "maybe")
+                    {
+                        //std::cout << "Введити слово: ";
+                        std::cout.flush();
+                        std::cin >> message;
+                        SEND_TO_SERVER(game_fd);
+                    }
+                    else if (command == "leave")
+                    {
+                        message = "";
+                        SEND_TO_SERVER(game_fd);
+                    }
+                }
+            }
         }
-        else if (command == "leave")
+        else if (command == "quit" && login != "admin")
         {
             message = "";
-            SEND_TO_SERVER;
-        }
-        else if (command == "quit")
-        {
-            message = "";
-            SEND_TO_SERVER;
+            SEND_TO_SERVER(client_main_out_fd);
+            thr_respond.detach();
+            return 0;
         }
         else if (command == "shut_down" && login == "admin")
         {
             message = "";
-            SEND_TO_SERVER;
+            SEND_TO_SERVER(client_main_out_fd);
+            thr_respond.detach();
+            return 0;
         }
-        // if (command == "history")
-        // {
-        //     std::string pattern;
-        //     std::getline(std::cin, pattern);
-        //     send_message_to_server(fd_main_output, login, command, pattern);
-        // }
-        // else
-        // {
-        //     if (command == "quit")
-        //         break;
-        //     std::cin >> message;
-        //     send_message_to_server(fd_main_output, login, command, message);
-        // }
     }
-    //return 0;
-    thr_recieve.detach();
+    return 0;
 }

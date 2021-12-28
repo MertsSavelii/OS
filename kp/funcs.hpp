@@ -44,25 +44,6 @@ std::string recieve_message_client(int fd)
     return recv;
 }
 
-//получить сообщение в удобной для сервера форме
-void recieve_message_server(int fd, std::string *rcvd_name, std::string *rcvd_command, std::string *rcvd_data)
-{
-    int size;
-    read(fd, &size, sizeof(size));
-
-    char messagec[size];
-    read(fd, messagec, size);
-
-    std::string recv;
-    for (int i = 0; i < size; ++i)
-        recv.push_back(messagec[i]);
-    
-    *rcvd_name = extract_login(recv);
-    *rcvd_command = extract_command(recv);
-    *rcvd_data = extract_data(recv);
-    //return recv;
-}
-
 //получить логин из сообщения для сервера
 std::string extract_login(std::string message)
 {
@@ -109,6 +90,49 @@ std::string extract_data(std::string message)
         ++i;
     }
     return data;
+}
+
+//получить сообщение в удобной для сервера форме
+void recieve_message_server(int fd, std::string *rcvd_name, std::string *rcvd_command, std::string *rcvd_data)
+{
+    int size;
+    read(fd, &size, sizeof(size));
+
+    char messagec[size];
+    read(fd, messagec, size);
+
+    std::string recv;
+    for (int i = 0; i < size; ++i)
+        recv.push_back(messagec[i]);
+    
+    *rcvd_name = extract_login(recv);
+    *rcvd_command = extract_command(recv);
+    *rcvd_data = extract_data(recv);
+    //return recv;
+}
+
+void extract_game_data(std::string message, std::string *game_name_table, std::string *game_word, int* max_players )
+{
+    int i = 0;
+    while (message[i] != '$') 
+    {
+        game_name_table->push_back(message[i]);
+        ++i;
+    }
+    ++i;
+    while (message[i] != '$')
+    {
+        game_word->push_back(message[i]);
+        ++i;
+    }
+    ++i;
+    std::string max_players_string;
+    while (i < message.size())
+    {
+        max_players_string.push_back(message[i]);
+        ++i;
+    }
+    *max_players = stoi(max_players_string);
 }
 
 // //получить текст сообщения

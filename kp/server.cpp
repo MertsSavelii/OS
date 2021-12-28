@@ -10,23 +10,53 @@
 #include "funcs.hpp"
 #include <map>
 #include <vector>
+#include <thread>
 
+#define CLIENT_ID(name) in(logins,name)
 
-
-void game_funk (std::string game_name, std::string game_word, int max_players)
-{
+inline int create_game_pipe(std::string game_name){
     int curr_playrs;
-    //мб надо передавать обьект класса гаме
-    if (mkfifo(("game_%" + game_name).c_str(), 0777) == -1)
+    if (mkfifo(("game_%" + game_name).c_str(), S_IRWXU|S_IRWXG|S_IRWXO) == -1)
     {
         std::cout << "GAME " << ("game_%" + game_name).c_str() << " FIFO WAS NOT CREATED";
         exit(1);
     }
-    //клиент будет кидать запрос в поток со своим ником
-    //
+    int game_input_fd = open(("game_%" + game_name).c_str(), O_RDWR);
+    if (game_input_fd == -1)
+    {
+        std::cout << "MAIN INPUT FIFO WAS NOT OPENED";
+        exit(1);
+    }
+    return game_input_fd;
 }
 
-int in(std::vector<std::string> logins, std::string str)
+void game_funk (std::string game_name, std::string game_word, int max_players)
+{
+    int curr_playrs;
+    int game_input_fd = create_game_pipe(game_name);
+    std::string rcvd_name, rcvd_command, rcvd_data;
+    while (1)
+    {
+        recieve_message_server(game_input_fd, &rcvd_name, &rcvd_command, &rcvd_data);
+        if (rcvd_command == "connect")
+        {
+
+        }
+        else if (rcvd_command == "maybe")
+        {
+
+        }
+        else if (rcvd_command == "leave")
+        {
+            
+        }
+        
+    }
+    
+    
+}
+
+inline int in(std::vector<std::string> logins, std::string str)
 {
     for (int i = 0; i < logins.size(); ++i)
     {
@@ -36,54 +66,23 @@ int in(std::vector<std::string> logins, std::string str)
     return -1;
 }
 
-int main()
-{
-    std::vector<std::string> logins;
-    std::vector<int> client_pipe_fd;
-    //std::vector<game> games;
-
-    
-
-    // //ввод логинов
-    // std::cout << "Enter all user's logins. Insert 'end' to stop:\n";
-    // while (login != "end")
-    // {
-    //     std::cin >> login;
-    //     if (in(logins, login) == -1)
-    //         logins.push_back(login);
-    //     else
-    //         std::cout << "already exists!";
-    // }
-    // //std::cout << "TEST3\n";
-    // //создание выходных FIFO для всех логинов
-    // for (int i = 0; i < logins.size(); ++i)
-    // {
-    //     if (mkfifo(logins[i].c_str(), 0777) == -1)
-    //     {
-    //         if (errno != EEXIST)
-    //         {
-    //             std::cout << "FIFO WAS NOT CREATED";
-    //             exit(1);
-    //         }
-    //     }
-    // }
-
-
-    //создание входного FIFO
-    if (mkfifo("main_input", 0777) == -1)
+inline int create_main_pipe() {
+    if (mkfifo("main_input", S_IRWXU|S_IRWXG|S_IRWXO) == -1)
     {
         std::cout << "MAIN INPUT FIFO WAS NOT CREATED";
         exit(1);
     }
-    int fd_recv = open("input", O_RDWR);
+    int fd_recv = open("main_input", O_RDWR);
     if (fd_recv == -1)
     {
         std::cout << "MAIN INPUT FIFO WAS NOT OPENED";
         exit(1);
     }
+    return fd_recv;
+}
 
-    // открываем пайп админа
-    if (mkfifo("admin", 0777) == -1)
+inline int create_admin_pipe() {
+    if (mkfifo("admin", S_IRWXU|S_IRWXG|S_IRWXO) == -1)
     {
         std::cout << "ADMIN INPUT FIFO WAS NOT CREATED";
         exit(1);
@@ -94,49 +93,92 @@ int main()
         std::cout << "ADMIN INPUT FIFO WAS NOT OPENED";
         exit(1);
     }
+    return admin_fd;
+}
 
-    // //открытие всех FIFO на запись
-    // int fd[logins.size()];
-    // for (int i = 0; i < logins.size(); ++i)
-    //     fd[i] = open(logins[i].c_str(), O_RDWR);
-
-    std::string command;
-    std::string login;
-
-    while (1)
+inline int create_client_pipe(std::string rcvd_name) {
+    if (mkfifo(rcvd_name.c_str(), S_IRWXU|S_IRWXG|S_IRWXO) == -1)
     {
-        std::string message;
-        
-        message = recieve_message_server(fd_recv);
-        std::string rcvd_name = extract_login(message);          //от кого
-        std::string rcvd_command = extract_command(message);     //команда
-        std::string rcvd_data = extract_text(message);        //информация
-        //int use_ind = in(logins, rcvd_name);                     //id отправителя
+        std::cout << "CLIENT INPUT FIFO WAS NOT CREATED";
+        exit(1);
+    }
+    int fd = open(rcvd_name.c_str(), O_RDWR);
+    if (fd == -1)
+    {
+        std::cout << "CLIENT INPUT FIFO WAS NOT OPENED";
+        exit(1);
+    }
+    return fd;
+}
 
-        if (rcvd_command == "login")
+int main()
+{
+    std::vector<std::string> logins;
+    std::vector<int> client_pipe_fd;
+    //std::vector<std::thread> games_threads;
+    
+    int fd_recv = create_main_pipe();
+    int admin_fd = create_admin_pipe();
+
+    std::string login;
+    std::string rcvd_name, rcvd_command, rcvd_data; 
+    auto iter_fd = client_pipe_fd.cbegin();
+    auto iter_log = logins.cbegin();
+    while (1)
+    {       
+        recieve_message_server(fd_recv, &rcvd_name, &rcvd_command, &rcvd_data);
+
+        if (rcvd_command == "login" && rcvd_name != "admin")
         {
-            logins.push_back();
+            std::cout <<"New client: " << rcvd_name << std::endl;
+            std::cout.flush();
+
+            client_pipe_fd.push_back(create_client_pipe(rcvd_name));
+            logins.push_back(rcvd_name);
         }
         else if (rcvd_command == "create")
         {
-            //тут создатьь поток на вход которого будет функция игры и аргументы к ней
-            std::cout << "test create" << std::endl;
+            // std::string game_name_table, game_word;
+            // int max_players;
+            // extract_game_data(rcvd_data, &game_name_table, &game_word, &max_players);
+            // //std::thread g(game_funk, game_name_table, game_word, max_players);
+            // //games_threads.push_back(g);
+            // // std::cout << "test create" << std::endl;
+            send_message_to_client(client_pipe_fd[CLIENT_ID(rcvd_name)],"SERVER CLOSED");
         }
-        else if (rcvd_command == "connect")
+        else if (rcvd_command == "quit")
         {
-            std::cout << "test connect" << std::endl;
-        }
-        else if (rcvd_command == "leave")
-        {
-            std::cout << "test leave" << std::endl;
+            close(client_pipe_fd[CLIENT_ID(rcvd_name)]);
+            std::remove(rcvd_name.c_str());
+            iter_fd = client_pipe_fd.cbegin();
+            client_pipe_fd.erase(iter_fd - 1 + CLIENT_ID(rcvd_name));
+            iter_log = logins.cbegin();
+            logins.erase(iter_log + CLIENT_ID(rcvd_name));
+            std::cout << "CLIENT: " << rcvd_name << " LEFT\n";
+
         }
         else if (rcvd_command == "shut_down" && rcvd_name == "admin")
         {
-            // отправлять всем клиентам сообщение что сер закрывается 
-            // и удалять пайп клиентский потом и маин пайп
+            for(int i=0 ; i < logins.size(); i++)
+            {
+                send_message_to_client(client_pipe_fd[i],"SERVER CLOSED");
+                std::remove(logins[i].c_str());
+                close(client_pipe_fd[i]);
+            }
+            close(admin_fd);
+            std::remove("admin");
+            std::remove("main_input");
+            std::cout << "CLIENT: " << rcvd_name << " LEFT\n";
+            
+            return 0;
+        }
+        else if(rcvd_name != "admin")
+        {
+            send_message_to_client(client_pipe_fd[CLIENT_ID(rcvd_name)],"NOT A COMMAND");
         }
     }
     // чтобы завершить сервер корректно надо создать лоргин алмин и подключится к нему
     // через админа будет отправлять запрос на закрытие сервера
     // std::remove; //удаляет файл надо удалять пайпы
+    //game_thr.detach();
 }
