@@ -35,6 +35,18 @@ public:
     ~game();
 };
 
+void game_funk (std::string game_name, std::string game_word, int max_players)
+{
+    int curr_playrs;
+    //мб надо передавать обьект класса гаме
+    if (mkfifo(("game_%" + game_name).c_str(), 0777) == -1)
+    {
+        std::cout << "GAME " << ("game_%" + game_name).c_str() << " FIFO WAS NOT CREATED";
+        exit(1);
+    }
+    //клиент будет кидать запрос в поток со своим ником
+    //
+}
 
 int in(std::vector<std::string> logins, std::string str)
 {
@@ -99,6 +111,7 @@ int main()
     while (1)
     {
         std::string message;
+        
         message = recieve_message_server(fd_recv);
         //std::cout << message;
         std::string rcvd_name = extract_login(message);          //от кого
@@ -122,5 +135,13 @@ int main()
         {
             std::cout << "test leave" << std::endl;
         }
+        else if (rcvd_command == "shut_down" && rcvd_name == ">admin")
+        {
+            // отправлять всем клиентам сообщение что сер закрывается 
+            // и удалять пайп клиентский потом и маин пайп
+        }
     }
+    // чтобы завершить сервер корректно надо создать лоргин алмин и подключится к нему
+    // через админа будет отправлять запрос на закрытие сервера
+    std::remove; //удаляет файл надо удалять пайпы
 }
