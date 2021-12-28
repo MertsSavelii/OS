@@ -7,10 +7,11 @@
 #include <errno.h>
 #include <vector>
 #include <fcntl.h>
-#include "funcs.hpp"
 #include <map>
 #include <vector>
 #include <thread>
+#include "funcs.hpp"
+#include "games_list.h"
 
 #define CLIENT_ID(name) in(logins,name)
 
@@ -50,10 +51,7 @@ void game_funk (std::string game_name, std::string game_word, int max_players)
         {
             
         }
-        
     }
-    
-    
 }
 
 inline int in(std::vector<std::string> logins, std::string str)
