@@ -73,7 +73,6 @@ std::string extract_command(std::string message)
     return command;
 }
 
-//получить получателя сообщения
 std::string extract_data(std::string message)
 {
     std::string data;
@@ -92,7 +91,6 @@ std::string extract_data(std::string message)
     return data;
 }
 
-//получить сообщение в удобной для сервера форме
 void recieve_message_server(int fd, std::string *rcvd_name, std::string *rcvd_command, std::string *rcvd_data)
 {
     int size;
@@ -108,67 +106,24 @@ void recieve_message_server(int fd, std::string *rcvd_name, std::string *rcvd_co
     *rcvd_name = extract_login(recv);
     *rcvd_command = extract_command(recv);
     *rcvd_data = extract_data(recv);
-    //return recv;
 }
 
-void extract_game_data(std::string message, std::string *game_name_table, std::string *game_word, int* max_players )
+inline void extract_game_data(std::string message, std::string *game_name, std::string *game_word)
 {
     int i = 0;
+    std::string recv1;
+    std::string recv2;
     while (message[i] != '$') 
     {
-        game_name_table->push_back(message[i]);
+        recv1.push_back(message[i]);
         ++i;
     }
     ++i;
-    while (message[i] != '$')
-    {
-        game_word->push_back(message[i]);
-        ++i;
-    }
-    ++i;
-    std::string max_players_string;
     while (i < message.size())
     {
-        max_players_string.push_back(message[i]);
+        recv2.push_back(message[i]);
         ++i;
     }
-    *max_players = stoi(max_players_string);
+    *game_name = recv1;
+    *game_word = recv2;
 }
-
-// //получить текст сообщения
-// std::string extract_text(std::string message)
-// {
-//     std::string text;
-//     int i = 0;
-//     while (message[i] != '$')
-//         ++i;
-//     ++i;
-//     while (message[i] != '$')
-//         ++i;
-//     ++i;
-//     ++i;
-//     while (i < message.size())
-//     {
-//         text.push_back(message[i]);
-//         ++i;
-//     }
-//     return text;
-// }
-
-//обычный поиск подстроки
-// bool search(std::string text, std::string pattern)
-// {
-//     if (pattern.size() <= text.size())
-//         for (int i = 0; i <= text.size() - pattern.size(); ++i)
-//         {
-//             std::string pat;
-//             for (int z = 0; z < pattern.size(); ++z)
-//                 if (text[i + z] == pattern[z])
-//                     pat.push_back(text[i + z]);
-//             if (pat == pattern)
-//                 return true;
-
-//             pat.clear();
-//         }
-//     return false;
-// }

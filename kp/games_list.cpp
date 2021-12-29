@@ -22,11 +22,7 @@ bool CheckStringUnique(std::string str) {
     return true;
 }
 
-bool GamesList::GameExists(std::string gameName) {
-    if (games.find(gameName) == games.end())
-        return false;
-    return true;
-}
+
 
 bool GamesList::CreateGame(std::string gameName, std::string gamePassword) {
     if (GameExists(gameName))
@@ -57,6 +53,14 @@ bool GamesList::DeleteGame(std::string gameName) {
 //     }
 //     return false;
 // }
+
+
+
+bool GamesList::GameExists(std::string gameName) {
+    if (games.find(gameName) == games.end())
+        return false;
+    return true;
+}
 
 bool GamesList::GuessWord(std::string gameName, std::string tryWord) {
     // if (!GameExists(gameName))

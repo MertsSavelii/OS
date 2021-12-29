@@ -9,7 +9,7 @@
 #include "funcs.hpp"
 #include <thread>
 
-#define SEND_TO_SERVER(FD) send_message_to_server(FD, login, command, message)
+#define SEND_TO_SERVER(FD) send_message_to_server(FD, login, command, data)
 
 //функция приёма сообщений (для потока)
 void func(int fd_respond, std::string login)
@@ -36,7 +36,7 @@ inline void write_intro() {
 inline void write_menu(std::string login){
     std::cout << "Соединение установлено, можете отдавать команды\n";
     std::cout << "Список команд:\n";
-    std::cout << "1) create @название игрового стола@ @игровое слово@ @максимальное количество игроков@\n";
+    std::cout << "1) create @название игрового стола@ @игровое слово@\n";
     std::cout << "2) connect @название игры@\n";
     std::cout << "3) leave\n";
     if (login != "admin")std::cout << "4) quit\n";
@@ -55,8 +55,6 @@ inline int server_main_input_fd(){
     return fd;
 }
 
-
-
 int main()
 {
     int client_main_out_fd = server_main_input_fd();
@@ -65,7 +63,7 @@ int main()
     std::string login;
     std::cin >> login;
     send_message_to_server(client_main_out_fd, login, "login", "");
-    
+    std::cout << "Устанавливаю соединение\n";
     sleep(1);
     int fd_respond = open(login.c_str(), O_RDWR);
     if (fd_respond == -1)
@@ -74,13 +72,12 @@ int main()
         exit(1);
     }
 
-    
     write_menu(login);
     std::thread thr_respond(func, fd_respond, login);
 
-    std::string command, message;
-    std::string game_name_table, game_word;
-    int max_players, game_fd;
+    std::string command, data;
+    std::string game_word, game_name;
+    int game_fd;
 
     while (1)
     {
@@ -89,15 +86,14 @@ int main()
         
         if (command == "create")
         {
-            std::cin >> game_name_table >> game_word >> max_players;
-            message = game_name_table + "$" + game_word + "$" + std::to_string(max_players);
+            std::cin >> game_name >> game_word;
+            data = game_name + "$" + game_word;
             SEND_TO_SERVER(client_main_out_fd);
         }
         else if (command == "connect")
         {
-            std::string game_name;
             std::cin >> game_name;
-            game_fd = open(game_name.c_str(), O_RDWR);
+            game_fd = open(("game_%" + game_name).c_str(), O_RDWR);
             if (game_fd == -1)
             {
                 std::cout << "ERROR: GAME NOT FOUND\n";
@@ -105,38 +101,43 @@ int main()
             }
             else
             {
-                message = "";
+                data = "";
                 SEND_TO_SERVER(game_fd);
+                std::cout << login << "> ";
+                std::cout.flush();
                 while (1)
                 {
-                    std::cout << game_name << "> ";
                     std::cin >> command;
 
                     if (command == "maybe")
                     {
-                        //std::cout << "Введити слово: ";
-                        std::cout.flush();
-                        std::cin >> message;
+                        std::cin >> data;
                         SEND_TO_SERVER(game_fd);
                     }
                     else if (command == "leave")
                     {
-                        message = "";
+                        data = "";
                         SEND_TO_SERVER(game_fd);
+                        break;
+                    }
+                    else
+                    {
+                        std::cout << login << "> ";
+                        std::cout.flush();
                     }
                 }
             }
         }
         else if (command == "quit" && login != "admin")
         {
-            message = "";
+            data = "";
             SEND_TO_SERVER(client_main_out_fd);
             thr_respond.detach();
             return 0;
         }
         else if (command == "shut_down" && login == "admin")
         {
-            message = "";
+            data = "";
             SEND_TO_SERVER(client_main_out_fd);
             thr_respond.detach();
             return 0;
